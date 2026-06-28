@@ -1,0 +1,1494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CyberShield — Security Intelligence Portal</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg:        #070B14;
+      --surface:   #0D1526;
+      --card:      #111D35;
+      --border:    #1E2D4A;
+      --cyan:      #00C8FF;
+      --cyan-dim:  #0094C0;
+      --gold:      #FFB830;
+      --gold-dim:  #C88A00;
+      --text:      #E8EDF5;
+      --muted:     #6B7FA3;
+      --danger:    #FF4D6A;
+      --success:   #00E5A0;
+      --warning:   #FFB830;
+      --font-main: 'Space Grotesk', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-main);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── SCROLLBAR ── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    /* ── CANVAS BACKGROUND ── */
+    #particle-canvas {
+      position: fixed; top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none; z-index: 0; opacity: 0.35;
+    }
+
+    /* ── STARFIELD ── */
+    #star-canvas {
+      position: fixed; top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none; z-index: 0;
+    }
+
+    /* ── NEBULA ── */
+    .nebula {
+      position: fixed; inset: 0; z-index: 0;
+      pointer-events: none; overflow: hidden;
+    }
+    .neb1 {
+      position: absolute; top: -18%; left: -12%;
+      width: 680px; height: 680px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(124,58,237,0.13) 0%, transparent 65%);
+    }
+    .neb2 {
+      position: absolute; bottom: -22%; right: -10%;
+      width: 780px; height: 780px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(0,200,255,0.09) 0%, transparent 65%);
+    }
+    .neb3 {
+      position: absolute; top: 38%; left: 52%;
+      width: 480px; height: 480px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(255,184,48,0.05) 0%, transparent 65%);
+    }
+
+    /* ── CONTACT PAGE ── */
+    .contact-grid {
+      display: grid; grid-template-columns: 1fr 1.1fr;
+      gap: 2rem; align-items: start;
+    }
+    .contact-info-card, .contact-form-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px; padding: 2.4rem;
+    }
+    .contact-avatar {
+      width: 90px; height: 90px; border-radius: 18px;
+      background: linear-gradient(135deg, var(--cyan), #7c3aed);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2.4rem; margin-bottom: 1.4rem;
+      box-shadow: 0 0 40px rgba(0,200,255,0.22);
+    }
+    .contact-name { font-size: 1.55rem; font-weight: 700; color: var(--text); margin-bottom: 0.25rem; }
+    .contact-role { font-size: 0.82rem; color: var(--cyan); margin-bottom: 0.2rem; font-family: var(--font-mono); }
+    .contact-college { font-size: 0.8rem; color: var(--muted); margin-bottom: 1.4rem; }
+    .info-row {
+      display: flex; align-items: center; gap: 12px;
+      padding: 11px 0; border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+    .info-row:last-of-type { border-bottom: none; }
+    .info-icon {
+      width: 38px; height: 38px; border-radius: 10px;
+      background: rgba(0,200,255,0.09); border: 1px solid rgba(0,200,255,0.18);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1rem; flex-shrink: 0;
+    }
+    .info-label { font-size: 0.65rem; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 2px; }
+    .info-val { font-size: 0.83rem; color: var(--text); }
+    .info-val a { color: var(--cyan); text-decoration: none; }
+    .info-val a:hover { text-decoration: underline; }
+    .contact-btns { display: flex; gap: 10px; margin-top: 1.4rem; }
+    .contact-btns a { flex: 1; text-decoration: none; }
+    .contact-btns button {
+      width: 100%; padding: 11px; border-radius: 10px;
+      font-family: var(--font-main); font-size: 0.83rem; font-weight: 700;
+      cursor: pointer; transition: all 0.2s; display: flex;
+      align-items: center; justify-content: center; gap: 6px;
+    }
+    .btn-contact-primary {
+      background: linear-gradient(135deg, var(--cyan-dim), #0044AA);
+      color: #fff; border: none;
+    }
+    .btn-contact-primary:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(0,150,255,0.3); }
+    .btn-contact-outline {
+      background: transparent; color: var(--muted);
+      border: 1px solid var(--border);
+    }
+    .btn-contact-outline:hover { border-color: var(--cyan); color: var(--cyan); }
+    .form-label {
+      font-size: 0.7rem; color: var(--muted);
+      letter-spacing: 0.1em; text-transform: uppercase;
+      display: block; margin-bottom: 0.5rem;
+    }
+    .form-inp {
+      width: 100%; background: var(--surface);
+      border: 1.5px solid var(--border); border-radius: 10px;
+      padding: 0.85rem 1rem; color: var(--text);
+      font-family: var(--font-mono); font-size: 0.85rem;
+      outline: none; transition: border-color 0.2s; margin-bottom: 1.1rem;
+    }
+    .form-inp:focus { border-color: var(--cyan); }
+    .form-inp::placeholder { color: var(--muted); }
+    .form-sent {
+      background: rgba(0,229,160,0.08); border: 1px solid var(--success);
+      border-radius: 12px; padding: 1rem 1.2rem;
+      color: var(--success); font-weight: 600;
+      display: none; margin-top: 1rem; text-align: center;
+    }
+    .skill-badges { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1.2rem; }
+    .skill-badge {
+      font-size: 0.7rem; font-family: var(--font-mono);
+      padding: 4px 10px; border-radius: 6px;
+      background: rgba(0,200,255,0.08); color: var(--cyan);
+      border: 1px solid rgba(0,200,255,0.2);
+    }
+    @media (max-width: 700px) {
+      .contact-grid { grid-template-columns: 1fr; }
+    }
+
+    /* ── NAVBAR ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0;
+      z-index: 100;
+      background: rgba(7,11,20,0.92);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 2rem;
+      display: flex; align-items: center; justify-content: space-between;
+      height: 64px;
+    }
+    .nav-logo {
+      font-family: var(--font-mono);
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--cyan);
+      letter-spacing: 0.05em;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .nav-logo span { color: var(--gold); }
+    .logo-icon {
+      width: 32px; height: 32px;
+      background: linear-gradient(135deg, var(--cyan), var(--gold));
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1rem;
+    }
+    .nav-links {
+      display: flex; gap: 6px; list-style: none;
+    }
+    .nav-links button {
+      background: none; border: none;
+      color: var(--muted);
+      font-family: var(--font-main);
+      font-size: 0.85rem;
+      font-weight: 500;
+      padding: 8px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      letter-spacing: 0.03em;
+    }
+    .nav-links button:hover, .nav-links button.active {
+      color: var(--cyan);
+      background: rgba(0,200,255,0.08);
+    }
+    .nav-badge {
+      background: linear-gradient(135deg, var(--cyan), #0066FF);
+      color: #000;
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 4px 12px;
+      border-radius: 20px;
+      letter-spacing: 0.05em;
+      font-family: var(--font-mono);
+    }
+
+    /* ── PAGES ── */
+    .page { display: none; min-height: 100vh; padding-top: 64px; position: relative; z-index: 1; }
+    .page.active { display: block; }
+
+    /* ── HOME PAGE ── */
+    .hero {
+      min-height: calc(100vh - 64px);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      text-align: center;
+      padding: 4rem 2rem;
+      position: relative;
+    }
+    .hero-eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      color: var(--cyan);
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      margin-bottom: 1.5rem;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .hero-eyebrow::before, .hero-eyebrow::after {
+      content: '';
+      display: block; width: 40px; height: 1px;
+      background: var(--cyan); opacity: 0.5;
+    }
+    .hero-title {
+      font-size: clamp(2.8rem, 7vw, 5.5rem);
+      font-weight: 700;
+      line-height: 1.05;
+      letter-spacing: -0.02em;
+      margin-bottom: 1.5rem;
+    }
+    .hero-title .line1 { color: var(--text); display: block; }
+    .hero-title .line2 {
+      display: block;
+      background: linear-gradient(90deg, var(--cyan), var(--gold));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero-sub {
+      font-size: 1.05rem;
+      color: var(--muted);
+      max-width: 540px;
+      line-height: 1.7;
+      margin-bottom: 3rem;
+    }
+    .hero-tools-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      max-width: 780px;
+      width: 100%;
+      margin-bottom: 3rem;
+    }
+    .tool-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.5rem 1.2rem;
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
+      text-align: left;
+      position: relative;
+      overflow: hidden;
+    }
+    .tool-card::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, var(--cyan), transparent);
+      opacity: 0;
+      transition: opacity 0.25s;
+    }
+    .tool-card:hover { border-color: var(--cyan-dim); transform: translateY(-4px); box-shadow: 0 20px 40px rgba(0,200,255,0.1); }
+    .tool-card:hover::before { opacity: 1; }
+    .tool-card-icon { font-size: 2rem; margin-bottom: 0.8rem; }
+    .tool-card-title { font-size: 0.95rem; font-weight: 600; color: var(--text); margin-bottom: 0.3rem; }
+    .tool-card-desc { font-size: 0.78rem; color: var(--muted); line-height: 1.5; }
+    .tool-card-arrow {
+      position: absolute; bottom: 1.2rem; right: 1.2rem;
+      color: var(--cyan); font-size: 1rem; opacity: 0;
+      transition: opacity 0.2s, transform 0.2s;
+    }
+    .tool-card:hover .tool-card-arrow { opacity: 1; transform: translateX(4px); }
+
+    .hero-stats {
+      display: flex; gap: 3rem;
+      border-top: 1px solid var(--border);
+      padding-top: 2.5rem;
+    }
+    .stat { text-align: center; }
+    .stat-val {
+      font-family: var(--font-mono);
+      font-size: 1.8rem; font-weight: 700;
+      color: var(--cyan);
+    }
+    .stat-label { font-size: 0.75rem; color: var(--muted); margin-top: 4px; letter-spacing: 0.08em; text-transform: uppercase; }
+
+    /* ── SECTION HEADERS ── */
+    .section { padding: 5rem 2rem; max-width: 960px; margin: 0 auto; }
+    .section-header { margin-bottom: 3rem; }
+    .section-tag {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--gold);
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      margin-bottom: 0.6rem;
+    }
+    .section-title { font-size: 2.2rem; font-weight: 700; letter-spacing: -0.02em; }
+    .section-sub { font-size: 0.95rem; color: var(--muted); margin-top: 0.5rem; line-height: 1.6; }
+
+    /* ── PASSWORD PAGE ── */
+    .tool-box {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 2.5rem;
+      margin-bottom: 2rem;
+    }
+    .tool-input-wrap { position: relative; margin-bottom: 1.5rem; }
+    .tool-input {
+      width: 100%;
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem 3.5rem 1rem 1.2rem;
+      font-family: var(--font-mono);
+      font-size: 1.05rem;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .tool-input:focus { border-color: var(--cyan); }
+    .tool-input::placeholder { color: var(--muted); }
+    .eye-btn {
+      position: absolute; right: 1rem; top: 50%; transform: translateY(-50%);
+      background: none; border: none;
+      color: var(--muted); cursor: pointer; font-size: 1.1rem;
+    }
+    .strength-bar-wrap {
+      height: 6px;
+      background: var(--surface);
+      border-radius: 99px;
+      overflow: hidden;
+      margin-bottom: 0.5rem;
+    }
+    .strength-bar {
+      height: 100%;
+      border-radius: 99px;
+      width: 0%;
+      transition: width 0.4s, background 0.4s;
+    }
+    .strength-label {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      font-weight: 600;
+      margin-bottom: 1.5rem;
+    }
+    .pw-checks { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; }
+    .pw-check {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 0.82rem; color: var(--muted);
+      transition: color 0.2s;
+    }
+    .pw-check.pass { color: var(--success); }
+    .pw-check.fail { color: var(--muted); }
+    .pw-check-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--border);
+      flex-shrink: 0;
+      transition: background 0.2s;
+    }
+    .pw-check.pass .pw-check-dot { background: var(--success); }
+    .suggest-btn {
+      background: linear-gradient(135deg, var(--cyan-dim), #0044AA);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 0.75rem 1.5rem;
+      font-family: var(--font-main);
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.2s;
+      margin-top: 1.2rem;
+    }
+    .suggest-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+    .suggested-pw {
+      margin-top: 1rem;
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      color: var(--gold);
+      background: var(--surface);
+      padding: 0.8rem 1rem;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      display: none;
+      word-break: break-all;
+    }
+    .crack-time {
+      margin-top: 1.2rem;
+      padding: 1rem;
+      background: var(--surface);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      font-size: 0.85rem;
+    }
+    .crack-time span { color: var(--cyan); font-family: var(--font-mono); font-weight: 600; }
+
+    /* ── PHISHING PAGE ── */
+    .url-result {
+      border-radius: 16px;
+      padding: 1.5rem;
+      margin-top: 1.5rem;
+      display: none;
+      border: 1.5px solid var(--border);
+    }
+    .url-result.safe { border-color: var(--success); background: rgba(0,229,160,0.06); }
+    .url-result.danger { border-color: var(--danger); background: rgba(255,77,106,0.06); }
+    .result-head { display: flex; align-items: center; gap: 12px; margin-bottom: 1rem; }
+    .result-icon { font-size: 2rem; }
+    .result-verdict { font-size: 1.1rem; font-weight: 700; }
+    .result-verdict.safe-text { color: var(--success); }
+    .result-verdict.danger-text { color: var(--danger); }
+    .result-checks { display: flex; flex-direction: column; gap: 0.5rem; }
+    .result-check-item {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 0.83rem; color: var(--muted);
+      padding: 0.5rem 0.8rem;
+      background: rgba(255,255,255,0.02);
+      border-radius: 8px;
+    }
+    .result-check-item .tag {
+      font-size: 0.7rem; font-weight: 600; font-family: var(--font-mono);
+      padding: 2px 8px; border-radius: 4px;
+      margin-left: auto;
+    }
+    .tag.ok { background: rgba(0,229,160,0.15); color: var(--success); }
+    .tag.bad { background: rgba(255,77,106,0.15); color: var(--danger); }
+    .tag.warn { background: rgba(255,184,48,0.15); color: var(--warning); }
+    .phish-examples {
+      display: flex; gap: 0.6rem; flex-wrap: wrap; margin-top: 1rem;
+    }
+    .phish-pill {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      padding: 5px 12px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition: all 0.2s;
+      color: var(--muted);
+    }
+    .phish-pill:hover { border-color: var(--cyan); color: var(--cyan); }
+    .phish-pill.bad-url { border-color: rgba(255,77,106,0.4); color: var(--danger); }
+
+    /* ── CIA TRIAD PAGE ── */
+    .cia-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-bottom: 3rem; }
+    .cia-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 2rem 1.5rem;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.25s, box-shadow 0.25s;
+    }
+    .cia-card:hover { transform: translateY(-5px); }
+    .cia-card::after {
+      content: '';
+      position: absolute; bottom: 0; left: 0; right: 0; height: 3px;
+    }
+    .cia-c::after { background: var(--cyan); }
+    .cia-i::after { background: var(--gold); }
+    .cia-a::after { background: var(--success); }
+    .cia-letter {
+      font-family: var(--font-mono);
+      font-size: 3.5rem; font-weight: 700;
+      opacity: 0.08;
+      position: absolute; top: 0.5rem; right: 1rem;
+    }
+    .cia-icon { font-size: 2.2rem; margin-bottom: 1rem; }
+    .cia-name { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem; }
+    .cia-c .cia-name { color: var(--cyan); }
+    .cia-i .cia-name { color: var(--gold); }
+    .cia-a .cia-name { color: var(--success); }
+    .cia-desc { font-size: 0.83rem; color: var(--muted); line-height: 1.6; }
+    .cia-example {
+      margin-top: 1rem; font-size: 0.78rem;
+      font-family: var(--font-mono);
+      padding: 0.5rem 0.8rem;
+      border-radius: 8px;
+      background: var(--surface);
+    }
+
+    .threats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .threat-item {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.3rem;
+      display: flex; align-items: flex-start; gap: 14px;
+      transition: border-color 0.2s;
+      cursor: default;
+    }
+    .threat-item:hover { border-color: var(--cyan-dim); }
+    .threat-icon { font-size: 1.6rem; flex-shrink: 0; }
+    .threat-name { font-size: 0.9rem; font-weight: 600; margin-bottom: 0.3rem; }
+    .threat-desc { font-size: 0.78rem; color: var(--muted); line-height: 1.5; }
+    .threat-severity {
+      font-size: 0.68rem; font-weight: 700; font-family: var(--font-mono);
+      padding: 2px 8px; border-radius: 4px; margin-top: 0.5rem; display: inline-block;
+    }
+    .sev-critical { background: rgba(255,77,106,0.15); color: var(--danger); }
+    .sev-high { background: rgba(255,184,48,0.15); color: var(--warning); }
+    .sev-medium { background: rgba(0,200,255,0.12); color: var(--cyan); }
+
+    /* ── QUIZ PAGE ── */
+    .quiz-wrap { max-width: 680px; margin: 0 auto; }
+    .quiz-progress-bar-bg {
+      height: 4px; background: var(--surface); border-radius: 99px;
+      margin-bottom: 2.5rem; overflow: hidden;
+    }
+    .quiz-progress-bar {
+      height: 100%; background: linear-gradient(90deg, var(--cyan), var(--gold));
+      border-radius: 99px;
+      transition: width 0.4s;
+    }
+    .quiz-q-num {
+      font-family: var(--font-mono);
+      font-size: 0.75rem; color: var(--muted);
+      margin-bottom: 0.8rem;
+      letter-spacing: 0.12em;
+    }
+    .quiz-question {
+      font-size: 1.25rem; font-weight: 600;
+      line-height: 1.5;
+      margin-bottom: 2rem;
+    }
+    .quiz-options { display: flex; flex-direction: column; gap: 0.75rem; }
+    .quiz-option {
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem 1.2rem;
+      font-size: 0.92rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: left;
+      color: var(--text);
+      font-family: var(--font-main);
+      display: flex; align-items: center; gap: 12px;
+    }
+    .quiz-option:hover:not(:disabled) { border-color: var(--cyan); background: rgba(0,200,255,0.05); }
+    .quiz-option.correct { border-color: var(--success); background: rgba(0,229,160,0.08); color: var(--success); }
+    .quiz-option.wrong { border-color: var(--danger); background: rgba(255,77,106,0.08); color: var(--danger); }
+    .quiz-option:disabled { cursor: default; }
+    .opt-letter {
+      width: 28px; height: 28px;
+      border-radius: 8px;
+      background: var(--surface);
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-mono);
+      font-size: 0.78rem; font-weight: 700;
+      flex-shrink: 0;
+    }
+    .quiz-feedback {
+      margin-top: 1.2rem;
+      padding: 1rem 1.2rem;
+      border-radius: 12px;
+      font-size: 0.85rem;
+      line-height: 1.6;
+      display: none;
+    }
+    .quiz-feedback.show { display: block; }
+    .quiz-feedback.correct-fb { background: rgba(0,229,160,0.08); border: 1px solid var(--success); color: var(--success); }
+    .quiz-feedback.wrong-fb { background: rgba(255,77,106,0.08); border: 1px solid var(--danger); color: var(--text); }
+    .quiz-next-btn {
+      margin-top: 1.5rem;
+      background: linear-gradient(135deg, var(--cyan-dim), #0044AA);
+      color: #fff;
+      border: none; border-radius: 10px;
+      padding: 0.8rem 2rem;
+      font-family: var(--font-main);
+      font-size: 0.95rem; font-weight: 600;
+      cursor: pointer;
+      display: none;
+      transition: opacity 0.2s;
+    }
+    .quiz-next-btn:hover { opacity: 0.9; }
+    .quiz-result {
+      text-align: center;
+      padding: 3rem 2rem;
+      display: none;
+    }
+    .quiz-score-ring {
+      width: 140px; height: 140px;
+      border-radius: 50%;
+      background: conic-gradient(var(--cyan) 0%, var(--border) 0%);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 1.5rem;
+      position: relative;
+    }
+    .quiz-score-ring::before {
+      content: '';
+      position: absolute;
+      inset: 12px;
+      border-radius: 50%;
+      background: var(--bg);
+    }
+    .quiz-score-val {
+      position: relative; z-index: 1;
+      font-family: var(--font-mono);
+      font-size: 2rem; font-weight: 700;
+      color: var(--cyan);
+    }
+    .quiz-result-title { font-size: 1.6rem; font-weight: 700; margin-bottom: 0.5rem; }
+    .quiz-result-sub { color: var(--muted); font-size: 0.9rem; margin-bottom: 2rem; }
+    .quiz-restart {
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 0.75rem 2rem;
+      color: var(--text);
+      font-family: var(--font-main);
+      font-size: 0.9rem; font-weight: 600;
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+    .quiz-restart:hover { border-color: var(--cyan); }
+
+    /* ── CAREERS PAGE ── */
+    .careers-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.2rem; }
+    .career-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.8rem;
+      transition: all 0.25s;
+      cursor: default;
+    }
+    .career-card:hover { border-color: var(--cyan-dim); transform: translateY(-3px); box-shadow: 0 16px 32px rgba(0,200,255,0.08); }
+    .career-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 1rem; }
+    .career-icon { font-size: 1.8rem; }
+    .career-salary {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      color: var(--success);
+      background: rgba(0,229,160,0.1);
+      padding: 4px 10px;
+      border-radius: 6px;
+    }
+    .career-title { font-size: 1rem; font-weight: 700; margin-bottom: 0.5rem; }
+    .career-desc { font-size: 0.8rem; color: var(--muted); line-height: 1.6; margin-bottom: 1rem; }
+    .career-skills { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+    .skill-tag {
+      font-size: 0.7rem;
+      font-family: var(--font-mono);
+      padding: 3px 10px;
+      border-radius: 5px;
+      background: rgba(0,200,255,0.08);
+      color: var(--cyan);
+      border: 1px solid rgba(0,200,255,0.2);
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 2.5rem 2rem;
+      text-align: center;
+      font-size: 0.8rem;
+      color: var(--muted);
+      position: relative; z-index: 1;
+    }
+    footer strong { color: var(--cyan); font-family: var(--font-mono); }
+
+    /* ── UTILITY ── */
+    .btn-primary {
+      background: linear-gradient(135deg, var(--cyan-dim), #0044AA);
+      color: #fff;
+      border: none; border-radius: 10px;
+      padding: 0.8rem 1.6rem;
+      font-family: var(--font-main);
+      font-size: 0.9rem; font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,150,255,0.25); }
+
+    @media (max-width: 700px) {
+      .hero-tools-grid { grid-template-columns: 1fr 1fr; }
+      .cia-grid, .threats-grid, .careers-grid { grid-template-columns: 1fr; }
+      .pw-checks { grid-template-columns: 1fr; }
+      .hero-stats { gap: 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="star-canvas"></canvas>
+<canvas id="particle-canvas"></canvas>
+<div class="nebula"><div class="neb1"></div><div class="neb2"></div><div class="neb3"></div></div>
+
+<!-- NAVBAR -->
+<nav>
+  <div class="nav-logo">
+    <div class="logo-icon">🛡</div>
+    Cyber<span>Shield</span>
+  </div>
+  <ul class="nav-links">
+    <li><button onclick="showPage('home')" class="active" id="nav-home">Home</button></li>
+    <li><button onclick="showPage('password')" id="nav-password">Password</button></li>
+    <li><button onclick="showPage('phishing')" id="nav-phishing">Phishing</button></li>
+    <li><button onclick="showPage('cia')" id="nav-cia">CIA Triad</button></li>
+    <li><button onclick="showPage('quiz')" id="nav-quiz">Quiz</button></li>
+    <li><button onclick="showPage('careers')" id="nav-careers">Careers</button></li>
+    <li><button onclick="showPage('contact')" id="nav-contact">Contact</button></li>
+  </ul>
+  <span class="nav-badge">LIVE TOOLS</span>
+</nav>
+
+<!-- ═══════════════ HOME PAGE ═══════════════ -->
+<div class="page active" id="page-home">
+  <div class="hero">
+    <div class="hero-eyebrow">IBM SkillsBuild · Cyber Security</div>
+    <h1 class="hero-title">
+      <span class="line1">Defend. Detect.</span>
+      <span class="line2">Dominate.</span>
+    </h1>
+    <p class="hero-sub">An interactive cyber security intelligence portal — featuring live tools, threat analysis, CIA Triad deep-dive, and a career roadmap.</p>
+
+    <div class="hero-tools-grid">
+      <div class="tool-card" onclick="showPage('password')">
+        <div class="tool-card-icon">🔐</div>
+        <div class="tool-card-title">Password Analyzer</div>
+        <div class="tool-card-desc">Check strength, get crack-time estimate & generate secure passwords.</div>
+        <div class="tool-card-arrow">→</div>
+      </div>
+      <div class="tool-card" onclick="showPage('phishing')">
+        <div class="tool-card-icon">🎣</div>
+        <div class="tool-card-title">Phishing Detector</div>
+        <div class="tool-card-desc">Analyze URLs for phishing signals — spoofing, HTTPS, suspicious patterns.</div>
+        <div class="tool-card-arrow">→</div>
+      </div>
+      <div class="tool-card" onclick="showPage('cia')">
+        <div class="tool-card-icon">🔺</div>
+        <div class="tool-card-title">CIA Triad</div>
+        <div class="tool-card-desc">Explore Confidentiality, Integrity & Availability with real-world threats.</div>
+        <div class="tool-card-arrow">→</div>
+      </div>
+      <div class="tool-card" onclick="showPage('quiz')">
+        <div class="tool-card-icon">🧠</div>
+        <div class="tool-card-title">Security Quiz</div>
+        <div class="tool-card-desc">Test your cyber knowledge across 8 expert-level questions.</div>
+        <div class="tool-card-arrow">→</div>
+      </div>
+      <div class="tool-card" onclick="showPage('careers')">
+        <div class="tool-card-icon">🚀</div>
+        <div class="tool-card-title">Career Paths</div>
+        <div class="tool-card-desc">Explore roles, salaries & skills in the cyber security industry.</div>
+        <div class="tool-card-arrow">→</div>
+      </div>
+      <div class="tool-card" style="background: linear-gradient(135deg, rgba(0,200,255,0.06), rgba(255,184,48,0.06)); border-color: rgba(0,200,255,0.25);">
+        <div class="tool-card-icon">⚡</div>
+        <div class="tool-card-title">Live Demo Tools</div>
+        <div class="tool-card-desc">All tools work in real-time — no backend, pure client-side security.</div>
+        <div class="tool-card-arrow" style="opacity:1; color: var(--gold);">★</div>
+      </div>
+    </div>
+
+    <div class="hero-stats">
+      <div class="stat"><div class="stat-val">5+</div><div class="stat-label">Live Tools</div></div>
+      <div class="stat"><div class="stat-val">8</div><div class="stat-label">Quiz Questions</div></div>
+      <div class="stat"><div class="stat-val">6</div><div class="stat-label">Career Paths</div></div>
+      <div class="stat"><div class="stat-val">100%</div><div class="stat-label">Client-Side</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ PASSWORD PAGE ═══════════════ -->
+<div class="page" id="page-password">
+  <div class="section">
+    <div class="section-header">
+      <div class="section-tag">Tool 01 · Live Analysis</div>
+      <h2 class="section-title">Password Strength Analyzer</h2>
+      <p class="section-sub">Type a password to get real-time strength analysis, crack-time estimate, and a secure suggestion.</p>
+    </div>
+
+    <div class="tool-box">
+      <div class="tool-input-wrap">
+        <input class="tool-input" type="password" id="pw-input" placeholder="Enter a password to analyze..." oninput="analyzePw()" />
+        <button class="eye-btn" onclick="toggleEye()" id="eye-btn">👁</button>
+      </div>
+      <div class="strength-bar-wrap"><div class="strength-bar" id="pw-bar"></div></div>
+      <div class="strength-label" id="pw-label" style="color: var(--muted);">Waiting for input…</div>
+
+      <div class="pw-checks">
+        <div class="pw-check fail" id="chk-len"><div class="pw-check-dot"></div>At least 12 characters</div>
+        <div class="pw-check fail" id="chk-upper"><div class="pw-check-dot"></div>Uppercase letter (A–Z)</div>
+        <div class="pw-check fail" id="chk-lower"><div class="pw-check-dot"></div>Lowercase letter (a–z)</div>
+        <div class="pw-check fail" id="chk-num"><div class="pw-check-dot"></div>Number (0–9)</div>
+        <div class="pw-check fail" id="chk-sym"><div class="pw-check-dot"></div>Special character (!@#$…)</div>
+        <div class="pw-check fail" id="chk-no-common"><div class="pw-check-dot"></div>Not a common password</div>
+      </div>
+
+      <div class="crack-time" id="crack-box">
+        ⏱ Estimated crack time: <span id="crack-time">—</span>
+      </div>
+
+      <button class="suggest-btn" onclick="generatePw()">✨ Generate Secure Password</button>
+      <div class="suggested-pw" id="suggested-pw"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ PHISHING PAGE ═══════════════ -->
+<div class="page" id="page-phishing">
+  <div class="section">
+    <div class="section-header">
+      <div class="section-tag">Tool 02 · URL Analysis</div>
+      <h2 class="section-title">Phishing URL Detector</h2>
+      <p class="section-sub">Paste any URL to analyze it for phishing indicators — suspicious patterns, missing HTTPS, domain spoofing, and more.</p>
+    </div>
+
+    <div class="tool-box">
+      <div style="display:flex; gap: 0.8rem; margin-bottom: 1rem;">
+        <input class="tool-input" type="text" id="url-input" placeholder="https://example.com" style="flex:1; padding: 0.9rem 1.2rem;" />
+        <button class="btn-primary" onclick="analyzeUrl()">Scan →</button>
+      </div>
+
+      <div style="font-size: 0.8rem; color: var(--muted); margin-bottom: 0.5rem;">Try these examples:</div>
+      <div class="phish-examples">
+        <span class="phish-pill" onclick="setUrl('https://www.google.com')">google.com ✓</span>
+        <span class="phish-pill" onclick="setUrl('https://github.com')">github.com ✓</span>
+        <span class="phish-pill bad-url" onclick="setUrl('http://paypa1.com/login')">paypa1.com ⚠</span>
+        <span class="phish-pill bad-url" onclick="setUrl('http://secure-bank-login.xyz/verify')">secure-bank-login.xyz ⚠</span>
+        <span class="phish-pill bad-url" onclick="setUrl('http://amazon.com.phishing.tk/deals')">amazon.com.phishing.tk ⚠</span>
+        <span class="phish-pill bad-url" onclick="setUrl('http://192.168.1.1/admin/login')">IP login ⚠</span>
+      </div>
+
+      <div class="url-result" id="url-result">
+        <div class="result-head">
+          <div class="result-icon" id="res-icon"></div>
+          <div>
+            <div class="result-verdict" id="res-verdict"></div>
+            <div style="font-size:0.8rem; color: var(--muted); margin-top:3px;" id="res-url-display"></div>
+          </div>
+        </div>
+        <div class="result-checks" id="res-checks"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ CIA TRIAD PAGE ═══════════════ -->
+<div class="page" id="page-cia">
+  <div class="section">
+    <div class="section-header">
+      <div class="section-tag">Module 01 · Core Concepts</div>
+      <h2 class="section-title">The CIA Triad</h2>
+      <p class="section-sub">The three pillars of information security that every security professional must master.</p>
+    </div>
+
+    <div class="cia-grid">
+      <div class="cia-card cia-c">
+        <div class="cia-letter">C</div>
+        <div class="cia-icon">🔒</div>
+        <div class="cia-name">Confidentiality</div>
+        <div class="cia-desc">Ensuring that information is accessible only to those authorized to have access. Prevents unauthorized disclosure of sensitive data.</div>
+        <div class="cia-example">Example: Encryption, access control, 2FA</div>
+      </div>
+      <div class="cia-card cia-i">
+        <div class="cia-letter">I</div>
+        <div class="cia-icon">✅</div>
+        <div class="cia-name">Integrity</div>
+        <div class="cia-desc">Safeguarding the accuracy and completeness of information. Ensures data hasn't been tampered with or altered by unauthorized parties.</div>
+        <div class="cia-example">Example: Hashing (SHA-256), checksums, digital signatures</div>
+      </div>
+      <div class="cia-card cia-a">
+        <div class="cia-letter">A</div>
+        <div class="cia-icon">⚡</div>
+        <div class="cia-name">Availability</div>
+        <div class="cia-desc">Ensuring that authorized users have access to information and systems when needed. Systems must be operational and resilient.</div>
+        <div class="cia-example">Example: Redundancy, DDoS protection, backups</div>
+      </div>
+    </div>
+
+    <div class="section-header">
+      <div class="section-tag">Module 02 · Threat Landscape</div>
+      <h2 class="section-title">Common Cyber Threats</h2>
+    </div>
+
+    <div class="threats-grid">
+      <div class="threat-item">
+        <div class="threat-icon">🐟</div>
+        <div>
+          <div class="threat-name">Phishing</div>
+          <div class="threat-desc">Deceptive emails/messages trick users into revealing credentials or downloading malware.</div>
+          <span class="threat-severity sev-critical">CRITICAL</span>
+        </div>
+      </div>
+      <div class="threat-item">
+        <div class="threat-icon">💥</div>
+        <div>
+          <div class="threat-name">Ransomware</div>
+          <div class="threat-desc">Malware that encrypts victim's files and demands payment for the decryption key.</div>
+          <span class="threat-severity sev-critical">CRITICAL</span>
+        </div>
+      </div>
+      <div class="threat-item">
+        <div class="threat-icon">🌊</div>
+        <div>
+          <div class="threat-name">DDoS Attack</div>
+          <div class="threat-desc">Overwhelms servers with fake traffic, making services unavailable to legitimate users.</div>
+          <span class="threat-severity sev-high">HIGH</span>
+        </div>
+      </div>
+      <div class="threat-item">
+        <div class="threat-icon">👤</div>
+        <div>
+          <div class="threat-name">Man-in-the-Middle</div>
+          <div class="threat-desc">Attacker secretly intercepts and potentially alters communication between two parties.</div>
+          <span class="threat-severity sev-high">HIGH</span>
+        </div>
+      </div>
+      <div class="threat-item">
+        <div class="threat-icon">💉</div>
+        <div>
+          <div class="threat-name">SQL Injection</div>
+          <div class="threat-desc">Malicious SQL code inserted into input fields to manipulate backend databases.</div>
+          <span class="threat-severity sev-high">HIGH</span>
+        </div>
+      </div>
+      <div class="threat-item">
+        <div class="threat-icon">🔑</div>
+        <div>
+          <div class="threat-name">Brute Force</div>
+          <div class="threat-desc">Systematically checking all possible passwords until the correct one is found.</div>
+          <span class="threat-severity sev-medium">MEDIUM</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ QUIZ PAGE ═══════════════ -->
+<div class="page" id="page-quiz">
+  <div class="section">
+    <div class="section-header">
+      <div class="section-tag">Challenge · Test Your Knowledge</div>
+      <h2 class="section-title">Cyber Security Quiz</h2>
+      <p class="section-sub">8 questions covering CIA Triad, threats, encryption, and best practices.</p>
+    </div>
+
+    <div class="quiz-wrap">
+      <div id="quiz-active">
+        <div class="quiz-progress-bar-bg">
+          <div class="quiz-progress-bar" id="quiz-prog"></div>
+        </div>
+        <div class="quiz-q-num" id="quiz-qnum">QUESTION 1 OF 8</div>
+        <div class="quiz-question" id="quiz-q"></div>
+        <div class="quiz-options" id="quiz-opts"></div>
+        <div class="quiz-feedback" id="quiz-fb"></div>
+        <button class="quiz-next-btn" id="quiz-next" onclick="nextQ()">Next Question →</button>
+      </div>
+      <div class="quiz-result" id="quiz-result">
+        <div class="quiz-score-ring" id="quiz-ring">
+          <div class="quiz-score-val" id="quiz-score-val"></div>
+        </div>
+        <div class="quiz-result-title" id="quiz-result-title"></div>
+        <div class="quiz-result-sub" id="quiz-result-sub"></div>
+        <button class="quiz-restart" onclick="restartQuiz()">↺ Restart Quiz</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ CAREERS PAGE ═══════════════ -->
+<div class="page" id="page-careers">
+  <div class="section">
+    <div class="section-header">
+      <div class="section-tag">Roadmap · Industry Roles</div>
+      <h2 class="section-title">Cyber Security Career Paths</h2>
+      <p class="section-sub">Explore top roles in the cyber security industry — from offensive hacking to governance and AI security.</p>
+    </div>
+
+    <div class="careers-grid">
+      <div class="career-card">
+        <div class="career-top">
+          <div class="career-icon">🗡️</div>
+          <div class="career-salary">$95K–$150K/yr</div>
+        </div>
+        <div class="career-title">Penetration Tester (Ethical Hacker)</div>
+        <div class="career-desc">Simulates cyber attacks against systems to discover vulnerabilities before malicious hackers can exploit them. Part of the Red Team.</div>
+        <div class="career-skills">
+          <span class="skill-tag">Kali Linux</span>
+          <span class="skill-tag">Metasploit</span>
+          <span class="skill-tag">Burp Suite</span>
+          <span class="skill-tag">Python</span>
+        </div>
+      </div>
+      <div class="career-card">
+        <div class="career-top">
+          <div class="career-icon">🛡️</div>
+          <div class="career-salary">$80K–$130K/yr</div>
+        </div>
+        <div class="career-title">SOC Analyst (Blue Team)</div>
+        <div class="career-desc">Monitors, detects, and responds to security incidents in real-time from a Security Operations Center. The defenders of an organization.</div>
+        <div class="career-skills">
+          <span class="skill-tag">SIEM</span>
+          <span class="skill-tag">Wireshark</span>
+          <span class="skill-tag">Splunk</span>
+          <span class="skill-tag">Incident Response</span>
+        </div>
+      </div>
+      <div class="career-card">
+        <div class="career-top">
+          <div class="career-icon">🔍</div>
+          <div class="career-salary">$90K–$145K/yr</div>
+        </div>
+        <div class="career-title">Malware Analyst</div>
+        <div class="career-desc">Reverse engineers malicious software to understand how it works, its origin, and how to defend against it. Deeply technical role.</div>
+        <div class="career-skills">
+          <span class="skill-tag">Reverse Engineering</span>
+          <span class="skill-tag">IDA Pro</span>
+          <span class="skill-tag">Assembly</span>
+          <span class="skill-tag">Sandbox Analysis</span>
+        </div>
+      </div>
+      <div class="career-card">
+        <div class="career-top">
+          <div class="career-icon">☁️</div>
+          <div class="career-salary">$110K–$175K/yr</div>
+        </div>
+        <div class="career-title">Cloud Security Engineer</div>
+        <div class="career-desc">Secures cloud infrastructure (AWS, Azure, GCP) — designing IAM policies, encryption strategies, and compliance frameworks.</div>
+        <div class="career-skills">
+          <span class="skill-tag">AWS</span>
+          <span class="skill-tag">Azure</span>
+          <span class="skill-tag">IAM</span>
+          <span class="skill-tag">Terraform</span>
+        </div>
+      </div>
+      <div class="career-card">
+        <div class="career-top">
+          <div class="career-icon">📜</div>
+          <div class="career-salary">$85K–$140K/yr</div>
+        </div>
+        <div class="career-title">CISO / Security Manager</div>
+        <div class="career-desc">Chief Information Security Officer — leads the entire security strategy, policy, risk management, and compliance for an organization.</div>
+        <div class="career-skills">
+          <span class="skill-tag">ISO 27001</span>
+          <span class="skill-tag">Risk Mgmt</span>
+          <span class="skill-tag">GRC</span>
+          <span class="skill-tag">Leadership</span>
+        </div>
+      </div>
+      <div class="career-card">
+        <div class="career-top">
+          <div class="career-icon">🤖</div>
+          <div class="career-salary">$120K–$190K/yr</div>
+        </div>
+        <div class="career-title">AI Security Researcher</div>
+        <div class="career-desc">Emerging field — investigates AI model vulnerabilities, adversarial attacks, prompt injection, and builds defenses for AI systems.</div>
+        <div class="career-skills">
+          <span class="skill-tag">ML/AI</span>
+          <span class="skill-tag">Python</span>
+          <span class="skill-tag">Adversarial ML</span>
+          <span class="skill-tag">Research</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ CONTACT PAGE ═══════════════ -->
+<div class="page" id="page-contact">
+  <div class="section">
+    <div class="section-header">
+      <div class="section-tag">Get In Touch · Developer</div>
+      <h2 class="section-title">Contact</h2>
+      <p class="section-sub">Connect with the developer of CyberShield for collaborations, internship opportunities, or project discussions.</p>
+    </div>
+    <div class="contact-grid">
+      <!-- Info Card -->
+      <div class="contact-info-card">
+        <div class="contact-avatar">👩‍💻</div>
+        <div class="contact-name">Aditi Devaliya</div>
+        <div class="contact-role">Cybersecurity Developer &amp; IBM Intern Candidate</div>
+        <div class="contact-college">A.V. Parekh Technical Institute</div>
+        <div style="height:1px;background:linear-gradient(90deg,transparent,var(--border),transparent);margin:1.1rem 0;"></div>
+        <div class="info-row">
+          <div class="info-icon">✉️</div>
+          <div><div class="info-label">Email</div><div class="info-val"><a href="mailto:aditikdevaliya@gmail.com">aditikdevaliya@gmail.com</a></div></div>
+        </div>
+        <div class="info-row">
+          <div class="info-icon">🎓</div>
+          <div><div class="info-label">Degree</div><div class="info-val">Computer Engineering</div></div>
+        </div>
+        <div class="info-row">
+          <div class="info-icon">🏛️</div>
+          <div><div class="info-label">Institution</div><div class="info-val">A.V. Parekh Technical Institute</div></div>
+        </div>
+        <div class="info-row">
+          <div class="info-icon">💼</div>
+          <div><div class="info-label">LinkedIn</div><div class="info-val"><a href="https://www.linkedin.com/in/devaliya-aditi-773815418" target="_blank">linkedin.com/in/devaliya-aditi</a></div></div>
+        </div>
+        <div class="info-row">
+          <div class="info-icon">🛡️</div>
+          <div><div class="info-label">Project</div><div class="info-val">CyberShield — IBM SkillsBuild Portal</div></div>
+        </div>
+        <div class="contact-btns">
+          <a href="mailto:aditikdevaliya@gmail.com"><button class="btn-contact-primary">📧 Email Me</button></a>
+          <a href="https://www.linkedin.com/in/devaliya-aditi-773815418" target="_blank"><button class="btn-contact-outline">🔗 LinkedIn</button></a>
+        </div>
+        <div class="skill-badges">
+          <span class="skill-badge">Cybersecurity</span>
+          <span class="skill-badge">Python</span>
+          <span class="skill-badge">Web Dev</span>
+          <span class="skill-badge">AI / ML</span>
+          <span class="skill-badge">IBM SkillsBuild</span>
+          <span class="skill-badge">Network Security</span>
+        </div>
+      </div>
+      <!-- Form Card -->
+      <div class="contact-form-card">
+        <div class="section-title" style="font-size:1.2rem;margin-bottom:1.5rem;">Send a Message</div>
+        <label class="form-label">Your Name</label>
+        <input class="form-inp" id="cf-name" placeholder="John Smith"/>
+        <label class="form-label">Email Address</label>
+        <input class="form-inp" id="cf-email" placeholder="john@company.com"/>
+        <label class="form-label">Subject</label>
+        <input class="form-inp" id="cf-subject" placeholder="e.g. Internship Opportunity / Project Collaboration"/>
+        <label class="form-label">Message</label>
+        <textarea class="form-inp" id="cf-msg" rows="5" placeholder="Tell me about your project or opportunity…" style="resize:vertical;"></textarea>
+        <button class="btn-primary" onclick="sendContactForm()" style="width:100%;padding:13px;font-size:0.9rem;">Send Message 🚀</button>
+        <div class="form-sent" id="form-sent">✅ Message received! Aditi will reply within 24 hours.</div>
+        <div style="height:1px;background:linear-gradient(90deg,transparent,var(--border),transparent);margin:1.5rem 0;"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.8rem;text-align:center;">
+          <div style="background:rgba(0,200,255,0.05);border:1px solid rgba(0,200,255,0.14);border-radius:12px;padding:1rem;">
+            <div style="font-size:1.4rem;margin-bottom:0.4rem;">🔐</div>
+            <div style="font-size:0.7rem;color:var(--muted);font-weight:600;">Cybersecurity</div>
+          </div>
+          <div style="background:rgba(255,184,48,0.06);border:1px solid rgba(255,184,48,0.18);border-radius:12px;padding:1rem;">
+            <div style="font-size:1.4rem;margin-bottom:0.4rem;">💻</div>
+            <div style="font-size:0.7rem;color:var(--muted);font-weight:600;">Full Stack Dev</div>
+          </div>
+          <div style="background:rgba(0,229,160,0.05);border:1px solid rgba(0,229,160,0.14);border-radius:12px;padding:1rem;">
+            <div style="font-size:1.4rem;margin-bottom:0.4rem;">🤖</div>
+            <div style="font-size:0.7rem;color:var(--muted);font-weight:600;">AI / ML</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  Built with ❤️ by <strong>Aditi Devaliya</strong> &nbsp;·&nbsp; A.V. Parekh Technical Institute &nbsp;·&nbsp; Computer Engineering &nbsp;·&nbsp; IBM SkillsBuild Cyber Security
+</footer>
+
+<script>
+// ── STARFIELD ─────────────────────────────────────────────────
+(function(){
+  const c = document.getElementById('star-canvas');
+  const ctx2 = c.getContext('2d');
+  let W, H, stars = [];
+  function resize() {
+    W = c.width = window.innerWidth;
+    H = c.height = window.innerHeight;
+    stars = Array.from({length: 260}, () => ({
+      x: Math.random()*W, y: Math.random()*H,
+      r: Math.random()*1.5+0.2,
+      a: Math.random(), da: (Math.random()-0.5)*0.005
+    }));
+  }
+  resize(); window.addEventListener('resize', resize);
+  (function loop(){
+    ctx2.clearRect(0,0,W,H);
+    stars.forEach(s=>{
+      s.a = Math.max(0.04, Math.min(1, s.a+s.da));
+      if(s.a<=0.04||s.a>=1) s.da*=-1;
+      ctx2.beginPath(); ctx2.arc(s.x,s.y,s.r,0,Math.PI*2);
+      ctx2.fillStyle=`rgba(180,210,255,${s.a})`; ctx2.fill();
+    });
+    requestAnimationFrame(loop);
+  })();
+})();
+
+// ── CONTACT FORM ──────────────────────────────────────────────
+function sendContactForm() {
+  const name = document.getElementById('cf-name').value.trim();
+  const email = document.getElementById('cf-email').value.trim();
+  const msg = document.getElementById('cf-msg').value.trim();
+  if (!name || !email || !msg) { alert('Please fill in Name, Email, and Message.'); return; }
+  const sent = document.getElementById('form-sent');
+  sent.style.display = 'block';
+  ['cf-name','cf-email','cf-subject','cf-msg'].forEach(id => { document.getElementById(id).value = ''; });
+  setTimeout(() => { sent.style.display = 'none'; }, 5000);
+}
+
+// ── PARTICLE CANVAS ──────────────────────────────────────────
+const canvas = document.getElementById('particle-canvas');
+const ctx = canvas.getContext('2d');
+let particles = [];
+
+function resizeCanvas() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+
+for (let i = 0; i < 60; i++) {
+  particles.push({
+    x: Math.random() * window.innerWidth,
+    y: Math.random() * window.innerHeight,
+    r: Math.random() * 1.5 + 0.5,
+    dx: (Math.random() - 0.5) * 0.4,
+    dy: (Math.random() - 0.5) * 0.4,
+    alpha: Math.random() * 0.5 + 0.2,
+    color: Math.random() > 0.5 ? '0,200,255' : '255,184,48'
+  });
+}
+
+function animateParticles() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  particles.forEach(p => {
+    p.x += p.dx; p.y += p.dy;
+    if (p.x < 0) p.x = canvas.width;
+    if (p.x > canvas.width) p.x = 0;
+    if (p.y < 0) p.y = canvas.height;
+    if (p.y > canvas.height) p.y = 0;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(${p.color},${p.alpha})`;
+    ctx.fill();
+  });
+  // draw lines
+  for (let i = 0; i < particles.length; i++) {
+    for (let j = i + 1; j < particles.length; j++) {
+      const d = Math.hypot(particles[i].x - particles[j].x, particles[i].y - particles[j].y);
+      if (d < 120) {
+        ctx.beginPath();
+        ctx.moveTo(particles[i].x, particles[i].y);
+        ctx.lineTo(particles[j].x, particles[j].y);
+        ctx.strokeStyle = `rgba(0,200,255,${0.06 * (1 - d/120)})`;
+        ctx.lineWidth = 0.5;
+        ctx.stroke();
+      }
+    }
+  }
+  requestAnimationFrame(animateParticles);
+}
+animateParticles();
+
+// ── PAGE NAVIGATION ──────────────────────────────────────────
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-links button').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  const nb = document.getElementById('nav-' + id);
+  if (nb) nb.classList.add('active');
+  window.scrollTo(0, 0);
+  if (id === 'quiz') initQuiz();
+}
+
+// ── PASSWORD ANALYZER ─────────────────────────────────────────
+const commonPws = ['password','123456','password1','qwerty','letmein','welcome','admin','monkey','sunshine','iloveyou'];
+function analyzePw() {
+  const v = document.getElementById('pw-input').value;
+  const checks = {
+    len: v.length >= 12,
+    upper: /[A-Z]/.test(v),
+    lower: /[a-z]/.test(v),
+    num: /[0-9]/.test(v),
+    sym: /[^A-Za-z0-9]/.test(v),
+    noCommon: !commonPws.includes(v.toLowerCase())
+  };
+  ['len','upper','lower','num','sym','no-common'].forEach((k, i) => {
+    const key = Object.keys(checks)[i];
+    const el = document.getElementById('chk-' + k);
+    el.classList.toggle('pass', checks[key]);
+    el.classList.toggle('fail', !checks[key]);
+  });
+  const score = Object.values(checks).filter(Boolean).length;
+  const bar = document.getElementById('pw-bar');
+  const label = document.getElementById('pw-label');
+  const pct = (score / 6) * 100;
+  bar.style.width = v.length ? pct + '%' : '0%';
+  const levels = [
+    { s: 0, c: '#FF4D6A', l: 'Very Weak' },
+    { s: 2, c: '#FF8C42', l: 'Weak' },
+    { s: 3, c: '#FFB830', l: 'Fair' },
+    { s: 4, c: '#00C8FF', l: 'Strong' },
+    { s: 5, c: '#00E5A0', l: 'Very Strong' },
+    { s: 6, c: '#00E5A0', l: '🏆 Excellent' },
+  ];
+  const lvl = [...levels].reverse().find(l => score >= l.s) || levels[0];
+  bar.style.background = lvl.c;
+  label.style.color = lvl.c;
+  label.textContent = v.length ? lvl.l : 'Waiting for input…';
+  // crack time
+  const charset = (checks.lower?26:0)+(checks.upper?26:0)+(checks.num?10:0)+(checks.sym?32:0)||1;
+  const combos = Math.pow(charset, v.length || 1);
+  const guesses = 1e10;
+  const secs = combos / guesses;
+  document.getElementById('crack-time').textContent = formatTime(secs);
+}
+
+function formatTime(s) {
+  if (s < 1) return 'Instantly';
+  if (s < 60) return `${Math.round(s)} seconds`;
+  if (s < 3600) return `${Math.round(s/60)} minutes`;
+  if (s < 86400) return `${Math.round(s/3600)} hours`;
+  if (s < 31536000) return `${Math.round(s/86400)} days`;
+  if (s < 3.15e9) return `${Math.round(s/31536000)} years`;
+  return 'Centuries 🔒';
+}
+
+function toggleEye() {
+  const inp = document.getElementById('pw-input');
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+}
+
+function generatePw() {
+  const chars = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#$%^&*';
+  let pw = '';
+  for (let i = 0; i < 16; i++) pw += chars[Math.floor(Math.random() * chars.length)];
+  const el = document.getElementById('suggested-pw');
+  el.style.display = 'block';
+  el.textContent = '✨ ' + pw + '  (click to copy)';
+  el.onclick = () => { navigator.clipboard.writeText(pw); el.textContent = '✅ Copied! ' + pw; };
+}
+
+// ── PHISHING DETECTOR ─────────────────────────────────────────
+function setUrl(u) {
+  document.getElementById('url-input').value = u;
+  analyzeUrl();
+}
+
+function analyzeUrl() {
+  const raw = document.getElementById('url-input').value.trim();
+  if (!raw) return;
+  const res = document.getElementById('url-result');
+  res.style.display = 'block';
+
+  const checks = [];
+  let score = 0;
+
+  const hasHttps = raw.startsWith('https://');
+  checks.push({ label: 'HTTPS Protocol', ok: hasHttps, detail: hasHttps ? 'Secure connection' : 'No encryption (HTTP)' });
+  if (hasHttps) score++;
+
+  const ipPattern = /^https?:\/\/(\d{1,3}\.){3}\d{1,3}/;
+  const hasIp = ipPattern.test(raw);
+  checks.push({ label: 'Domain (not IP)', ok: !hasIp, detail: hasIp ? 'IP address used instead of domain' : 'Legitimate domain name' });
+  if (!hasIp) score++;
+
+  const suspTlds = ['.tk', '.ml', '.ga', '.cf', '.xyz', '.top', '.click'];
+  const hasSuspTld = suspTlds.some(t => raw.includes(t));
+  checks.push({ label: 'Trusted TLD', ok: !hasSuspTld, detail: hasSuspTld ? 'Suspicious TLD detected (.tk/.xyz/etc.)' : 'Standard top-level domain' });
+  if (!hasSuspTld) score++;
+
+  const suspWords = ['login', 'verify', 'secure', 'update', 'bank', 'account', 'confirm', 'phishing'];
+  const hasSuspWord = suspWords.some(w => raw.toLowerCase().includes(w));
+  checks.push({ label: 'No Suspicious Keywords', ok: !hasSuspWord, detail: hasSuspWord ? 'Contains phishing keywords (login/verify/bank)' : 'No suspicious keywords found' });
+  if (!hasSuspWord) score++;
+
+  // homograph / typosquat
+  const typos = { paypa1: 'paypal', g00gle: 'google', arnazon: 'amazon', rn: 'm' };
+  const hasTypo = Object.keys(typos).some(k => raw.toLowerCase().includes(k));
+  checks.push({ label: 'No Homograph Substitution', ok: !hasTypo, detail: hasTypo ? 'Possible character substitution (1→l, 0→o)' : 'No homograph tricks detected' });
+  if (!hasTypo) score++;
+
+  // subdomain abuse
+  const urlParts = raw.replace(/https?:\/\//,'').split('/')[0].split('.');
+  const tooManySubdomains = urlParts.length > 4;
+  checks.push({ label: 'Clean Subdomain Structure', ok: !tooManySubdomains, detail: tooManySubdomains ? 'Excessive subdomains (possible spoofing)' : 'Normal subdomain depth' });
+  if (!tooManySubdomains) score++;
+
+  const isSafe = score >= 5;
+
+  document.getElementById('res-icon').textContent = isSafe ? '✅' : '🚨';
+  const v = document.getElementById('res-verdict');
+  v.textContent = isSafe ? 'Likely Safe' : 'Potential Phishing Detected!';
+  v.className = 'result-verdict ' + (isSafe ? 'safe-text' : 'danger-text');
+  document.getElementById('res-url-display').textContent = raw.length > 60 ? raw.slice(0, 60) + '…' : raw;
+
+  res.className = 'url-result ' + (isSafe ? 'safe' : 'danger');
+
+  const checksHtml = checks.map(c => `
+    <div class="result-check-item">
+      ${c.label}
+      <span style="color:var(--muted); font-size:0.78rem; flex:1; text-align:right; margin-right:8px;">${c.detail}</span>
+      <span class="tag ${c.ok ? 'ok' : 'bad'}">${c.ok ? 'PASS' : 'FAIL'}</span>
+    </div>
+  `).join('');
+  document.getElementById('res-checks').innerHTML = checksHtml;
+}
+
+// ── QUIZ ──────────────────────────────────────────────────────
+const questions = [
+  { q: 'What does the "C" in the CIA Triad stand for?', opts: ['Cryptography','Confidentiality','Cybersecurity','Control'], ans: 1, exp: 'Confidentiality ensures that information is accessible only to authorized individuals.' },
+  { q: 'Which attack overwhelms a server with traffic to make it unavailable?', opts: ['Phishing','SQL Injection','DDoS','Ransomware'], ans: 2, exp: 'A Distributed Denial of Service (DDoS) attack floods servers with fake traffic, violating Availability.' },
+  { q: 'What hashing algorithm produces a 256-bit digest?', opts: ['MD5','SHA-1','SHA-256','AES-128'], ans: 2, exp: 'SHA-256 (Secure Hash Algorithm) produces a 256-bit hash, widely used for data integrity.' },
+  { q: 'Which team performs offensive security testing (ethical hacking)?', opts: ['Blue Team','Purple Team','Red Team','Green Team'], ans: 2, exp: 'Red Team simulates real attackers to find vulnerabilities. Blue Team defends, Purple Team combines both.' },
+  { q: 'What type of malware encrypts your files and demands payment?', opts: ['Spyware','Ransomware','Adware','Worm'], ans: 1, exp: 'Ransomware encrypts victim files and demands a ransom (usually in cryptocurrency) for decryption.' },
+  { q: 'Which port does HTTPS typically run on?', opts: ['80','21','443','8080'], ans: 2, exp: 'HTTPS runs on port 443. HTTP runs on port 80. FTP uses port 21.' },
+  { q: 'What is "social engineering" in cyber security?', opts: ['Hacking networks','Manipulating people to reveal information','Writing malware','Scanning for open ports'], ans: 1, exp: 'Social engineering exploits human psychology — tricking people into giving up credentials or access.' },
+  { q: 'What does "2FA" stand for?', opts: ['Two-Factor Authentication','Two-File Access','Twice-Firewall Authorization','Two-Factor Analysis'], ans: 0, exp: '2FA (Two-Factor Authentication) requires two forms of verification, greatly improving account security.' }
+];
+
+let qIdx = 0, score = 0;
+function initQuiz() {
+  qIdx = 0; score = 0;
+  document.getElementById('quiz-active').style.display = 'block';
+  document.getElementById('quiz-result').style.display = 'none';
+  loadQ();
+}
+function loadQ() {
+  const q = questions[qIdx];
+  document.getElementById('quiz-qnum').textContent = `QUESTION ${qIdx+1} OF ${questions.length}`;
+  document.getElementById('quiz-prog').style.width = `${(qIdx/questions.length)*100}%`;
+  document.getElementById('quiz-q').textContent = q.q;
+  document.getElementById('quiz-fb').className = 'quiz-feedback';
+  document.getElementById('quiz-next').style.display = 'none';
+  const optsEl = document.getElementById('quiz-opts');
+  optsEl.innerHTML = q.opts.map((o,i) => `
+    <button class="quiz-option" onclick="answerQ(${i})">
+      <span class="opt-letter">${String.fromCharCode(65+i)}</span>${o}
+    </button>
+  `).join('');
+}
+function answerQ(i) {
+  const q = questions[qIdx];
+  const opts = document.querySelectorAll('.quiz-option');
+  opts.forEach(o => o.disabled = true);
+  opts[i].classList.add(i === q.ans ? 'correct' : 'wrong');
+  opts[q.ans].classList.add('correct');
+  const fb = document.getElementById('quiz-fb');
+  fb.className = 'quiz-feedback show ' + (i === q.ans ? 'correct-fb' : 'wrong-fb');
+  fb.innerHTML = (i === q.ans ? '✅ Correct! ' : '❌ Incorrect. ') + q.exp;
+  if (i === q.ans) score++;
+  document.getElementById('quiz-next').style.display = 'block';
+  document.getElementById('quiz-next').textContent = qIdx < questions.length-1 ? 'Next Question →' : 'See Results →';
+}
+function nextQ() {
+  qIdx++;
+  if (qIdx < questions.length) { loadQ(); return; }
+  showResult();
+}
+function showResult() {
+  document.getElementById('quiz-active').style.display = 'none';
+  const r = document.getElementById('quiz-result');
+  r.style.display = 'block';
+  const pct = Math.round((score/questions.length)*100);
+  document.getElementById('quiz-score-val').textContent = `${score}/${questions.length}`;
+  const ring = document.getElementById('quiz-ring');
+  ring.style.background = `conic-gradient(var(--cyan) ${pct*3.6}deg, var(--border) 0deg)`;
+  const titles = ['Keep Learning 📚','Good Start! 💪','Solid Knowledge 🔐','Great Work! 🌟','Cyber Expert! 🏆'];
+  const ti = Math.floor(score/2);
+  document.getElementById('quiz-result-title').textContent = titles[Math.min(ti, 4)];
+  document.getElementById('quiz-result-sub').textContent = `You scored ${pct}% — ${score === 8 ? 'Perfect score! You are ready for IBM certification.' : 'Keep practicing to master cyber security concepts.'}`;
+}
+function restartQuiz() { initQuiz(); }
+
+// Init quiz on page load for quiz page
+if (window.location.hash === '#quiz') initQuiz();
+else initQuiz();
+</script>
+</body>
+</html>
